@@ -1,7 +1,7 @@
 // Diccionario de mnemónicos a códigos de operación
 const opcodes = {
     "NOP": 0x00,
-    "LD": 0x01,
+    "LD": 0x3E,
     "JP": 0xC3,
     "JR": 0x18,
     "CP": 0xFE,
