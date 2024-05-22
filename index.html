@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASM to LST Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="menu">
+    <label for="fileSelector">Select a file:</label>
+    <input type="file" id="fileSelector" accept=".asm,.lst">
+</div>
+
+<div class="half">
+    <h2>ASM Code</h2>
+    <pre id="asmContent"></pre>
+</div>
+<div class="half">
+    <h2>LST Code</h2>
+    <pre id="lstContent"></pre>
+</div>
+
+<script src="asmProcessor.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
