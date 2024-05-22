@@ -1,0 +1,100 @@
+// Diccionario de mnemónicos a códigos de operación
+const opcodes = {
+    "NOP": 0x00,
+    "LD": 0x01,
+    "JP": 0xC3,
+    "JR": 0x18,
+    "CP": 0xFE,
+    "ADD": 0x80,
+    "HALT": 0x76,
+};
+
+// Función para ensamblar el código ASM
+function assemble(asmCode) {
+    // Inicializar direcciones de memoria y archivos de salida
+    let address = 0;
+    const hexOutput = [];
+    const lstOutput = [];
+    const labels = {};
+
+    // Primera pasada para registrar etiquetas
+    const lines = asmCode.split('\n');
+    lines.forEach((line, index) => {
+        line = line.trim().split(';')[0].trim();
+        if (!line) return;
+
+        if (line.includes(':')) {
+            const label = line.split(':')[0].trim();
+            labels[label] = address;
+            line = line.split(':')[1].trim();
+        }
+
+        const parts = line.split(' ');
+        const mnemonic = parts[0];
+        const operands = parts.slice(1);
+
+        if (mnemonic in opcodes) {
+            let machineCodeLength = 1;
+            if (mnemonic === "LD" && operands.length === 2) {
+                if (operands[1].startsWith('(') && operands[1].endsWith(')')) {
+                    machineCodeLength = 3;
+                } else {
+                    machineCodeLength = 2;
+                }
+            } else if (mnemonic === "JP" || mnemonic === "JR" || mnemonic === "CP") {
+                machineCodeLength = 3;
+            }
+            address += machineCodeLength;
+        }
+    });
+
+    address = 0;
+    lines.forEach((line, index) => {
+        line = line.trim().split(';')[0].trim();
+        if (!line) return;
+
+        if (line.includes(':')) {
+            line = line.split(':')[1].trim();
+        }
+
+        const parts = line.split(' ');
+        const mnemonic = parts[0];
+        const operands = parts.slice(1);
+
+        if (mnemonic in opcodes) {
+            const opcode = opcodes[mnemonic];
+            const machineCode = [opcode];
+
+            if (mnemonic === "LD" && operands.length === 2) {
+                if (operands[1].startsWith('(') && operands[1].endsWith(')')) {
+                    const addressValue = parseInt(operands[1].slice(1, -1), 16);
+                    machineCode.push(addressValue & 0xFF);
+                    machineCode.push((addressValue >> 8) & 0xFF);
+                } else {
+                    const reg = operands[1][0];
+                    if (reg === "A") {
+                        machineCode.push(0x7F);
+                    } else if (reg === "B") {
+                        machineCode.push(0x40);
+                    } else if (reg === "C") {
+                        machineCode.push(0x41);
+                    }
+                    const value = parseInt(operands[0], 16);
+                    machineCode.push(value);
+                }
+            } else if (mnemonic === "JP" || mnemonic === "JR" || mnemonic === "CP") {
+                const addressValue = parseInt(operands[0], 16);
+                machineCode.push(addressValue & 0xFF);
+                machineCode.push((addressValue >> 8) & 0xFF);
+            } else if (mnemonic === "ADD") {
+                machineCode[0] = 0x80 + ["A", "B", "C", "D", "E", "H", "L"].indexOf(operands[0]);
+            }
+
+            hexOutput.push(...machineCode);
+            lstOutput.push(`${address.toString(16).padStart(4, '0').toUpperCase()} ${machineCode.map(byte => byte.toString(16).padStart(2, '0').toUpperCase()).join(' ')} ${line}`);
+            address += machineCode.length;
+        }
+    });
+
+    return lstOutput.join('\n');
+}
